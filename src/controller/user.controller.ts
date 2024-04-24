@@ -81,3 +81,24 @@ export const me = async (req: Request, res: Response) => {
 export default {
   login,
 };
+
+export const signout = async (req: Request, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: req.user?.id,
+    },
+  });
+  if (!user) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+  }
+
+  // clear the token cookie and token from the database
+  await prisma.session.deleteMany({
+    where: {
+      userId: req.user?.id,
+    },
+  });
+
+  res.clearCookie("session");
+  res.status(StatusCodes.OK).json({ message: "Logged out successfully" });
+};
